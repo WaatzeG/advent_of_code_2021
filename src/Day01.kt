@@ -1,11 +1,7 @@
 fun main() {
     fun getIncreaseCount(numbers: List<Int>): Int {
-        var previousValue: Int? = null
-        return numbers.count { currentValue ->
-            val valueIncreased = previousValue.let { it != null && it < currentValue }
-            previousValue = currentValue
-            valueIncreased
-        }
+        return numbers.zipWithNext { prev, cur -> cur > prev }
+            .count { it }
     }
 
     fun part1(input: List<Int>): Int {
@@ -13,13 +9,7 @@ fun main() {
     }
 
     fun part2(input: List<Int>): Int {
-        val groups = input.mapIndexedNotNull() { index, _ ->
-            if (index + 2 > input.size - 1) {
-                null
-            } else {
-                input.slice(index..index + 2).sum()
-            }
-        }
+        val groups = input.windowed(3) { it.sum() }
         return getIncreaseCount(groups)
     }
 
