@@ -1,3 +1,4 @@
+import java.util.stream.Collectors.toSet
 import kotlin.math.pow
 
 fun main() {
@@ -18,39 +19,35 @@ fun main() {
                 val numbers = it[1]
                 val digits = wiring.split(" ")
                     .filter { it.isNotBlank() }
-                    .groupBy { it.length }
+                    .groupBy({ it.length }) { it.toSet() }
                     .let { length ->
                         mapOf(
-                            8 to length.getValue(7).single(),
-                            4 to length.getValue(4).single(),
-                            7 to length.getValue(3).single(),
-                            1 to length.getValue(2).single(),
-                            9 to length.getValue(6).single { it.toSet() + length.getValue(4).single().toSet() == it.toSet() }, //9 + 4 stays 9
-                            0 to length.getValue(6).single {
-                                it.toSet() + length.getValue(2).single().toSet() == it.toSet() && it.toSet() + length.getValue(4)
-                                    .single().toSet() != it.toSet()
-                            }, //0 + 1 == 0 && 0 + 4 != 4 (eliminates 6)
-                            6 to length.getValue(6).single { it.toSet() + length.getValue(2).single().toSet() != it.toSet() }, //6 + 1 == 6
-                            3 to length.getValue(5).single { it.toSet() + length.getValue(2).single().toSet() == it.toSet() }, //3 + 1 == 3
-                            2 to length.getValue(5).single {
-                                it.toSet() + length.getValue(6)
-                                    .single { nine -> nine.toSet() + length.getValue(4).single().toSet() == nine.toSet() }
-                                    .toSet() == length.getValue(7).single().toSet()
-                            }, //2+9==8
-                            5 to length.getValue(5).single {
-                                it.toSet() + length.getValue(6).single { it.toSet() + length.getValue(2).single().toSet() != it.toSet() }
-                                    .toSet() == length.getValue(6).single { it.toSet() + length.getValue(2).single().toSet() != it.toSet() }
-                                    .toSet()
-                            } //5+6==5
+                            length.getValue(7).single() to 8,
+                            length.getValue(4).single() to 4,
+                            length.getValue(3).single() to 7,
+                            length.getValue(2).single() to 1,
+                            length.getValue(6).single { it + length.getValue(4).single() == it } to 9, //9 + 4 stays 9
+                            length.getValue(6).single { it + length.getValue(2).single() != it } to 6, //6 + 1 == 6
+                            length.getValue(6).single {
+                                it + length.getValue(2).single() == it
+                                        && it + length.getValue(4).single() != it
+                            } to 0, //0 + 1 == 0 && 0 + 4 != 4 (eliminates 9)
+                            length.getValue(5).single { it + length.getValue(2).single() == it } to 3, //3 + 1 == 3
+                            length.getValue(5).single {
+                                it + length.getValue(6)
+                                    .single { nine -> nine + length.getValue(4).single() == nine } == length.getValue(7).single()
+                            } to 2, //2+9==8
+                            length.getValue(5).single {
+                                it + length.getValue(6).single { it + length.getValue(2).single() != it } == length.getValue(6)
+                                    .single { it + length.getValue(2).single() != it }
+                            } to 5 //5+6==5
                         )
                     }
 
                 //add them up
                 numbers.split(" ").filter { it.isNotBlank() }
-                    .foldIndexed(0L) { index, acc, word ->
-                        acc + (digits.entries.single { it.value.toSet() == word.toSet() }.key * 10.0.pow((3.0 - index))
-                                ).toLong()
-                    }
+                    .reversed()
+                    .foldIndexed(0L) { index, sum, word -> sum + (digits.getValue(word.toSet()) * 10.0.pow(index)).toLong() }
             }
 
         }
